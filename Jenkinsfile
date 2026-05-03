@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     tools {
+        // Logical JDK name configured in Jenkins
         jdk 'jdk17'
     }
 
     environment {
+        // Optional – if credential exists, Dependency-Check will use it
         NVD_API_KEY = credentials('nvd-api-key')
     }
 
@@ -31,14 +33,26 @@ pipeline {
                 }
             }
         }
+
+        stage('Trivy Filesystem Scan') {
+            steps {
+                sh '''
+                    trivy fs \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 1 \
+                      --no-progress \
+                      .
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo '✅ Build and verification succeeded'
+            echo '✅ Build, verify, and Trivy scan succeeded'
         }
         failure {
-            echo '❌ Build failed — check logs'
+            echo '❌ Pipeline failed (build or security gate)'
         }
         always {
             archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true
