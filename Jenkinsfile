@@ -27,14 +27,14 @@ pipeline {
        stage('SAST - Semgrep') {
     steps {
         sh '''
-          python3 -m pip install --user semgrep
-          python3 -m semgrep \
-            --config=auto \
-            --severity=ERROR \
-            --error
+          docker run --rm \
+            -v "$PWD:/src" \
+            returntocorp/semgrep \
+            semgrep --config=auto --severity=ERROR --error
         '''
     }
 }
+
  stage('Build & Verify') {
             steps {
                 dir('app') {
