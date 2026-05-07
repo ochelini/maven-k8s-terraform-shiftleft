@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+  docker {
+    image 'ochelini/jenkins-agent-devsecops:latest'
+    args '-u jenkins'
+  }
+}
 
     tools {
         // Logical JDK name configured in Jenkins
@@ -26,12 +31,7 @@ pipeline {
 
        stage('SAST - Semgrep') {
     steps {
-        sh '''
-          docker run --rm \
-            -v "$PWD:/src" \
-            returntocorp/semgrep \
-            semgrep --config=auto --severity=ERROR --error
-        '''
+        sh 'semgrep --config=auto --severity=ERROR --error'
     }
 }
 
