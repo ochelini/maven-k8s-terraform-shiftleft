@@ -6,11 +6,6 @@ pipeline {
   }
 }
 
-    tools {
-        // Logical JDK name configured in Jenkins
-        jdk 'jdk17'
-    }
-
     environment {
         // Optional – if credential exists, Dependency-Check will use it
         NVD_API_KEY = credentials('nvd-api-key')
