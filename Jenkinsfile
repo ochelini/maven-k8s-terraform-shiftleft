@@ -1,71 +1,32 @@
-pipeline {
-    agent {
-  docker {
-    image 'ochelini/jenkins-agent-devsecops:latest'
-    args '-u jenkins'
-  }
-}
-
-    environment {
-        // Optional – if credential exists, Dependency-Check will use it
-        NVD_API_KEY = credentials('nvd-api-key')
-    }
-
-    options {
-        timestamps()
-    }
-
-    stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-
-       stage('SAST - Semgrep') {
+stage('Build Docker Image') {
     steps {
-        sh 'semgrep --config=auto --severity=ERROR --error'
-    }
-}
-
- stage('Build & Verify') {
-            steps {
-                dir('app') {
-                    sh '''
-                        chmod +x ../mvnw
-                        ../mvnw clean verify
-                    '''
-                }
-            }
-        }
-
-        stage('Trivy Filesystem Scan') {
-            steps {
-                sh '''
-                    trivy fs \
-                      --severity HIGH,CRITICAL \
-                      --exit-code 1 \
-                      --no-progress \
-                      .
-                '''
-            }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Build, verify, and Trivy scan succeeded'
-        }
-        failure {
-            echo '❌ Pipeline failed (build or security gate)'
-        }
-        always {
-            archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true
+        dir('app') {
+            sh '''
+            docker build --pull -t ochelini/demo-app:latest .
+            '''
         }
     }
 }
-stage('Build Docker Image') { ... }
-stage('Scan Docker Image') { ... }
-stage('Push Docker Image') { ... }
+
+stage('Scan Docker Image') {
+    steps {
+        sh '''
+        trivy image --severity HIGH,CRITICAL --exit-code 1 ochelini/demo-app:latest
+        '''
+    }
+}
+
+stage('Push Docker Image') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+        )]) {
+            sh '''
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            docker push ochelini/demo-app:latest
+            '''
+        }
+    }
+}
