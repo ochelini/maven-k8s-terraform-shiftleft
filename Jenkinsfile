@@ -66,3 +66,6 @@ pipeline {
         }
     }
 }
+stage('Build Docker Image') { ... }
+stage('Scan Docker Image') { ... }
+stage('Push Docker Image') { ... }
