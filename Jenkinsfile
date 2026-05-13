@@ -4,8 +4,15 @@ node {
         checkout scm
     }
 
-    // ✅ Run everything inside your DevSecOps agent
     docker.image('ochelini/jenkins-agent-devsecops:latest').inside {
+
+        stage('Build Application') {
+            dir('app') {
+                sh '''
+                ./mvnw clean package -DskipTests
+                '''
+            }
+        }
 
         stage('Build Docker Image') {
             dir('app') {
@@ -36,3 +43,4 @@ node {
 
     }
 }
+
