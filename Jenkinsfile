@@ -7,12 +7,12 @@ node {
     docker.image('ochelini/jenkins-agent-devsecops:latest').inside {
 
         stage('Build Application') {
-            dir('app') {
-                sh '''
-                ./mvnw clean package -DskipTests
-                '''
-            }
-        }
+    sh '''
+    chmod +x mvnw
+    ./mvnw -f app/pom.xml clean package -DskipTests
+    '''
+}
+
 
         stage('Build Docker Image') {
             dir('app') {
