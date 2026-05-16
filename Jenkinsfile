@@ -22,7 +22,9 @@ node {
 
         stage('Scan Docker Image') {
             sh '''
-            export TRIVY_CACHE_DIR=/tmp/trivy-cache
+            export TRIVY_CACHE_DIR=$WORKSPACE/.trivy
+            mkdir -p $TRIVY_CACHE_DIR
+
             trivy image --severity HIGH,CRITICAL --exit-code 1 ochelini/demo-app:latest
             '''
         }
@@ -34,6 +36,9 @@ node {
                 passwordVariable: 'DOCKER_PASS'
             )]) {
                 sh '''
+                export DOCKER_CONFIG=$WORKSPACE/.docker
+                mkdir -p $DOCKER_CONFIG
+
                 echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                 docker push ochelini/demo-app:latest
                 '''
@@ -43,6 +48,7 @@ node {
         stage('Deploy to Kubernetes') {
             sh '''
             export KUBECONFIG=/home/jenkins/.kube/config
+
             kubectl apply -f k8s/
             kubectl rollout status deployment/demo-app
             '''
