@@ -19,7 +19,11 @@ node {
         }
 
         stage('Scan Docker Image') {
-            sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 ochelini/demo-app:latest'
+            sh '''
+             export TRIVY_CACHE_DIR=/tmp/trivy-cache
+
+             trivy image --severity HIGH,CRITICAL --exit-code 1 ochelini/demo-app:latest
+
         }
 
         stage('Push Docker Image') {
