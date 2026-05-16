@@ -14,32 +14,31 @@ node {
 
         stage('Build Docker Image') {
             dir('app') {
-                sh 'docker build -t ochelini/demo-app:latest .'
+                sh '''
+                docker build -t ochelini/demo-app:latest .
+                '''
             }
         }
 
         stage('Scan Docker Image') {
             sh '''
-             export TRIVY_CACHE_DIR=/tmp/trivy-cache
-
-             trivy image --severity HIGH,CRITICAL --exit-code 1 ochelini/demo-app:latest
-
+            export TRIVY_CACHE_DIR=/tmp/trivy-cache
+            trivy image --severity HIGH,CRITICAL --exit-code 1 ochelini/demo-app:latest
+            '''
         }
 
         stage('Push Docker Image') {
-    withCredentials([usernamePassword(
-        credentialsId: 'dockerhub-creds',
-        usernameVariable: 'DOCKER_USER',
-        passwordVariable: 'DOCKER_PASS'
-    )]) {
-
-        sh '''
-        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-        docker push ochelini/demo-app:latest
-        '''
-    }
-}
-
+            withCredentials([usernamePassword(
+                credentialsId: 'dockerhub-creds',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+            )]) {
+                sh '''
+                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                docker push ochelini/demo-app:latest
+                '''
+            }
+        }
 
         stage('Deploy to Kubernetes') {
             sh '''
