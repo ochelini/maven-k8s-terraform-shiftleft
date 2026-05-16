@@ -44,3 +44,12 @@ node {
     }
 }
 
+stage('Deploy to Kubernetes') {
+    sh '''
+    export KUBECONFIG=/home/jenkins/.kube/config
+
+    kubectl apply -f k8s/
+
+    kubectl rollout status deployment/demo-app
+    '''
+}
