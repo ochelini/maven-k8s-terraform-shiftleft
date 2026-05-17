@@ -1,5 +1,6 @@
 node {
-    docker.image('ochelini/jenkins-agent-devsecops:latest').inside {
+    docker.image('ochelini/jenkins-agent-devsecops:latest').inside('--network host') {
+
 
         stage('Checkout') {
             checkout scm
