@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: ochelini/demo-app:latest
+          image: ochelini/demo-app:initial
           ports:
             - containerPort: 8080
